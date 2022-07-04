@@ -1,4 +1,4 @@
-use tutorial9_models::run;
+use rendering_lib::run;
 
 fn main() {
     pollster::block_on(run());
