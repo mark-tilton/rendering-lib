@@ -223,7 +223,7 @@ impl InstanceRaw {
     }
 }
 
-struct State {
+struct View {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -242,7 +242,7 @@ struct State {
     depth_texture: texture::Texture,
 }
 
-impl State {
+impl View {
     async fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
@@ -593,8 +593,8 @@ pub async fn run() {
             .expect("Couldn't append canvas to document body.");
     }
 
-    // State::new uses async code, so we're going to wait for it to finish
-    let mut state = State::new(&window).await;
+    // View::new uses async code, so we're going to wait for it to finish
+    let mut view = View::new(&window).await;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
@@ -604,7 +604,7 @@ pub async fn run() {
                 ref event,
                 window_id,
             } if window_id == window.id() => {
-                if !state.input(event) {
+                if !view.input(event) {
                     match event {
                         WindowEvent::CloseRequested
                         | WindowEvent::KeyboardInput {
@@ -617,22 +617,22 @@ pub async fn run() {
                             ..
                         } => *control_flow = ControlFlow::Exit,
                         WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
+                            view.resize(*physical_size);
                         }
                         WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            state.resize(**new_inner_size);
+                            view.resize(**new_inner_size);
                         }
                         _ => {}
                     }
                 }
             }
             Event::RedrawRequested(window_id) if window_id == window.id() => {
-                state.update();
-                match state.render() {
+                view.update();
+                match view.render() {
                     Ok(_) => {}
                     // Reconfigure the surface if it's lost or outdated
                     Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-                        state.resize(state.size)
+                        view.resize(view.size)
                     }
                     // The system is out of memory, we should probably quit
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
